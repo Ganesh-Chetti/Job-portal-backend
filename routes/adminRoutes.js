@@ -5,6 +5,7 @@ const { authenticateToken, authorizeAdmin } = require('../middlewares/authMiddle
 const adminController = require('../controllers/adminController');
 
 const router = express.Router();
+
 // Admin Authentication
 router.post('/register', adminController.registerAdmin);
 router.post('/login', adminController.loginAdmin);
