@@ -5,13 +5,14 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 
+
 exports.registerUser = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Resume file is required" });
     }
 
-    const { fullname, email, mobilenumber,skills, password } = req.body;
+    const { fullname, email, mobilenumber, skills, password } = req.body;
 
     // Validate email
     const emailRegex = /\S+@\S+\.\S+/;
@@ -27,33 +28,17 @@ exports.registerUser = async (req, res) => {
         .json({ error: "Mobile number must contain exactly 10 digits" });
     }
 
-    // Ensure `skills` is an array
-    // let formattedSkills;
-    // try {
-    //   formattedSkills = Array.isArray(skills)
-    //     ? skills.map((item) => item.trim())
-    //     : skills.split(",").map((item) => item.trim());
-    // } catch (error) {
-    //   return res.status(400).json({ error: "Invalid format for skills" });
-    // }
-
-    // if (!formattedSkills || formattedSkills.length === 0) {
-    //   return res
-    //     .status(400)
-    //     .json({ error: "Skills must be a non-empty array or valid string" });
-    // }
-
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the user
+    // Save user with Cloudinary file URL
     const user = new User({
       fullname,
       email,
       mobilenumber,
       skills,
       password: hashedPassword,
-      resume: req.file.path,
+      resume: req.file.path, // Use Cloudinary URL instead of local path
     });
 
     await user.save();
@@ -64,6 +49,7 @@ exports.registerUser = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
         skills: user.skills,
+        resume: user.resume, // Send the resume URL
       },
     });
   } catch (err) {
@@ -71,6 +57,73 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({ error: err.message || "Something went wrong!" });
   }
 };
+
+// exports.registerUser = async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: "Resume file is required" });
+//     }
+
+//     const { fullname, email, mobilenumber,skills, password } = req.body;
+
+//     // Validate email
+//     const emailRegex = /\S+@\S+\.\S+/;
+//     if (!emailRegex.test(email)) {
+//       return res.status(400).json({ error: "Please use a valid email address" });
+//     }
+
+//     // Validate mobile number
+//     const mobileRegex = /^[0-9]{10}$/;
+//     if (!mobileRegex.test(mobilenumber)) {
+//       return res
+//         .status(400)
+//         .json({ error: "Mobile number must contain exactly 10 digits" });
+//     }
+
+//     // Ensure `skills` is an array
+//     // let formattedSkills;
+//     // try {
+//     //   formattedSkills = Array.isArray(skills)
+//     //     ? skills.map((item) => item.trim())
+//     //     : skills.split(",").map((item) => item.trim());
+//     // } catch (error) {
+//     //   return res.status(400).json({ error: "Invalid format for skills" });
+//     // }
+
+//     // if (!formattedSkills || formattedSkills.length === 0) {
+//     //   return res
+//     //     .status(400)
+//     //     .json({ error: "Skills must be a non-empty array or valid string" });
+//     // }
+
+//     // Hash the password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create the user
+//     const user = new User({
+//       fullname,
+//       email,
+//       mobilenumber,
+//       skills,
+//       password: hashedPassword,
+//       resume: req.file.path,
+//     });
+
+//     await user.save();
+//     res.status(201).json({
+//       message: "User registered successfully",
+//       user: {
+//         id: user._id,
+//         fullname: user.fullname,
+//         email: user.email,
+//         skills: user.skills,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Error during user registration:", err);
+//     res.status(500).json({ error: err.message || "Something went wrong!" });
+//   }
+// };
 
 // Login User
 exports.loginUser = async (req, res) => {
